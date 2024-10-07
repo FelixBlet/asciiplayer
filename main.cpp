@@ -10,13 +10,9 @@ extern "C" {
 
 int height, width;
 
-float get_bright(int R, int G, int B){
-  return (0.299 * R + 0.587 * G + 0.114 * B);
-};
-
 int main(int argc, char* argv[]) {
     const char* input_file = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-
+    int i, j;
 
     AVFormatContext* format_ctx = nullptr;
     if (avformat_open_input(&format_ctx, input_file, nullptr, nullptr) < 0) {
@@ -52,12 +48,16 @@ int main(int argc, char* argv[]) {
         return 5;
     }
 
+    height = codec_ctx->height;
+    width = codec_ctx->width;
+
     // Allocate frame and packet
     AVFrame* frame = av_frame_alloc();
     AVPacket packet;
     av_init_packet(&packet);
 
     // Read frames from the video stream
+
     while (av_read_frame(format_ctx, &packet) >= 0) {
         if (packet.stream_index == video_stream_idx) {
             // Decode video frame
@@ -83,6 +83,16 @@ int main(int argc, char* argv[]) {
                           << " bytes) pts " << frame->pts
                           << " key_frame " << frame->key_frame
                           << std::endl;
+
+                unsigned char* data = new unsigned char[frame->width * frame->height * 3];
+                for(int x = 0; x < height; ++x){
+                    for(int y = 0; y < width; ++y){
+                        data[y * frame->width * 3 + x * 3] = frame->data[0][y*frame->linesize[0]+x];
+                        //std::cout << data[y];
+                        //std::cout << frame->data[0][frame->linesize[0]*x*y];
+                        //y << " ";
+                    }
+                }
             }
         }
 
